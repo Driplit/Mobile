@@ -23,7 +23,7 @@ public class Wallet : MonoBehaviour
     public void AddMoney(int amount)
     {
         money += Mathf.Max(0, amount);
-        Debug.Log($"Money added: {amount}. Total money: {money}");
+       // Debug.Log($"Money added: {amount}. Total money: {money}");
         UpdateUI();
     }
     public void ResetMoney()
@@ -38,7 +38,7 @@ public class Wallet : MonoBehaviour
     public void AddCoins(int amount)
     {
         coins += Mathf.Max(0, amount);
-        Debug.Log($"Coins added: {amount}. Total coins: {coins}");
+        //Debug.Log($"Coins added: {amount}. Total coins: {coins}");
         UpdateUI();
     }
     public bool SpendCoins(int amount)
