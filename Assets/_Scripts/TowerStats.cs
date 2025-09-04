@@ -13,8 +13,8 @@ public enum StatType
     // ----- DEFENCE -----
     MaxHealth,
     HealthRegen,
-    DamageReduction,
-    Armor,
+    DamageReduction, //% damage reduction
+    Armor,           // minimum damage needed to hurt
 
     // ----- UTILITY -----
     CashMultiplier,
@@ -149,15 +149,61 @@ public class TowerStats : MonoBehaviour
 
     public float GetStat(StatType type)
     {
+        float baseValue = 0f;
+
         foreach (var stat in attackStats)
-            if (stat.type == type) return stat.value;
+            if (stat.type == type) baseValue = stat.value;
 
         foreach (var stat in defenceStats)
-            if (stat.type == type) return stat.value;
+            if (stat.type == type) baseValue = stat.value;
 
         foreach (var stat in utilityStats)
-            if (stat.type == type) return stat.value;
+            if (stat.type == type) baseValue = stat.value;
 
-        return 0f;
+        // Apply permanent upgrades
+        if (PermanentUpgradesManager.Instance != null)
+            baseValue = PermanentUpgradesManager.Instance.ApplyUpgrades(type, baseValue);
+
+        return baseValue;
+    }
+    public void TakeDamage(float amount)
+    {
+        
+        //apply damage reduction (%damageTaken) if 100 damage and 1% damage reduction, take 99 damage
+        float damageReduction = GetStat(StatType.DamageReduction);
+        float damageTaken = amount * (1f - damageReduction);
+        //apply armor (flat damage reduction) if 100 damage and 5 armor, take 95 damage
+        float armor = GetStat(StatType.Armor);
+        damageTaken -= armor;
+        damageTaken = Mathf.Max(0f, damageTaken); // prevent negative damage
+        currentHealth -= damageTaken;
+        Debug.Log("Tower took " + damageTaken + " damage. Current health: " + currentHealth);
+        if (currentHealth <= 0f)
+        {
+            Die();
+        }
+
+    }
+    void Die()
+    {
+        Debug.Log("Tower destroyed!");
+        // Add destruction effects here
+        Destroy(gameObject);
+        //change scene to menu
+        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            Enemy enemy = collision.gameObject.GetComponent<Enemy>();
+            if (enemy != null)
+            {
+                TakeDamage(enemy.GetStat(EnemyStats.Damage));
+                // Optionally, destroy the enemy on collision
+                Destroy(collision.gameObject);
+            }
+        }
     }
 }

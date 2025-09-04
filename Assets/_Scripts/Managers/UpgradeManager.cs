@@ -1,27 +1,48 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
+
+public enum UpgradeType
+{
+    Flat,
+    Percent
+}
 
 [System.Serializable]
 public class ShopUpgrade
 {
-    public StatType statType;       // Which stat this upgrade affects
-    public float upgradeAmount;     // How much the stat increases per purchase
-    public int cost;                // Cost in coins
-    public int maxLevel = 1;        // Max purchase count, 0 means unlimited
-    [HideInInspector] public int currentLevel = 0;  // Tracks how many times bought
+    public StatType statType;           // Which stat this upgrade affects
+    public UpgradeType upgradeType;     // Flat or Percent
+    public float upgradeAmount;         // Amount per purchase (flat value or percent multiplier)
+    public int cost;                    // Cost in cash
+    public int maxLevel = 1;            // 0 = unlimited
+    [HideInInspector] public int currentLevel = 0; // Tracks how many times bought
+    public bool isPermanent = false;    // Determines if upgrade persists across runs
 }
 
 public class UpgradeManager : MonoBehaviour
 {
-    [Header("References")]
-    public TowerStats towerStats;
-    public Wallet wallet; // Reference to the player's wallet
+    public static UpgradeManager Instance { get; private set; }
 
+    [Header("References")]
+    public TowerStats towerStats; // Assign in inspector
+    public Wallet wallet;         // Assign in inspector
 
     [Header("Upgrades")]
     public List<ShopUpgrade> upgrades = new List<ShopUpgrade>();
 
-    // Attempts to buy an upgrade by index
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+        DontDestroyOnLoad(gameObject); // important
+    }
+
+
+    // --- Buy an upgrade by index ---
     public bool BuyUpgrade(int upgradeIndex)
     {
         if (upgradeIndex < 0 || upgradeIndex >= upgrades.Count)
@@ -31,62 +52,74 @@ public class UpgradeManager : MonoBehaviour
         }
 
         ShopUpgrade upgrade = upgrades[upgradeIndex];
+        return BuyUpgrade(upgrade.statType, upgrade.upgradeType, wallet);
+    }
 
-        if (wallet.GetCoins() < upgrade.cost)
+    // --- Buy upgrade by StatType + UpgradeType ---
+    public bool BuyUpgrade(StatType statType, UpgradeType upgradeType, Wallet walletToUse)
+    {
+        ShopUpgrade upgrade = upgrades.Find(u => u.statType == statType && u.upgradeType == upgradeType);
+        if (upgrade == null)
         {
-            Debug.Log("Not enough coins to buy upgrade.");
+            Debug.LogWarning($"Upgrade not found: {statType} ({upgradeType})");
             return false;
         }
 
-        if (upgrade.maxLevel != 0 && upgrade.currentLevel >= upgrade.maxLevel)
+        if (walletToUse == null)
         {
-            Debug.Log("Upgrade max level reached.");
+            Debug.LogWarning("Wallet reference is null!");
             return false;
         }
 
-        // Deduct cost from Wallet
-        wallet.SpendCoins(upgrade.cost);
+        // Check if player has enough currency
+        if (walletToUse.GetCash() < upgrade.cost)
+        {
+            Debug.Log("Not enough currency!");
+            return false;
+        }
 
-        // Apply upgrade
-        ApplyUpgrade(upgrade.statType, upgrade.upgradeAmount);
+        // Spend the currency
+        walletToUse.SpendCash(upgrade.cost);
 
+        // Apply upgrade to tower stats
+        if (towerStats != null)
+            ApplyUpgrade(towerStats, upgrade.statType, upgrade.upgradeType, upgrade.upgradeAmount);
+        else
+            Debug.LogWarning("TowerStats reference is missing!");
+
+        // Track upgrade level
         upgrade.currentLevel++;
 
-        Debug.Log($"Bought upgrade {upgrade.statType} (+{upgrade.upgradeAmount}). Level {upgrade.currentLevel}/{(upgrade.maxLevel == 0 ? "?" : upgrade.maxLevel.ToString())}");
+        Debug.Log($"Bought {upgrade.statType} [{upgrade.upgradeType}] +{upgrade.upgradeAmount} | Level {upgrade.currentLevel}");
 
         return true;
     }
 
-    // Apply upgrade amount to the TowerStats stat
-    private void ApplyUpgrade(StatType statType, float amount)
+    // --- Apply upgrade to TowerStats ---
+    private void ApplyUpgrade(TowerStats tower, StatType statType, UpgradeType type, float amount)
     {
-        foreach (var stat in towerStats.attackStats)
+        if (tower == null) return;
+
+        List<Stat>[] statLists = { tower.attackStats, tower.defenceStats, tower.utilityStats };
+
+        foreach (var list in statLists)
         {
-            if (stat.type == statType)
+            foreach (var stat in list)
             {
-                stat.value += amount;
-                return;
-            }
-        }
-        foreach (var stat in towerStats.defenceStats)
-        {
-            if (stat.type == statType)
-            {
-                stat.value += amount;
-                return;
-            }
-        }
-        foreach (var stat in towerStats.utilityStats)
-        {
-            if (stat.type == statType)
-            {
-                stat.value += amount;
-                return;
+                if (stat.type == statType)
+                {
+                    if (type == UpgradeType.Flat)
+                        stat.value += amount;
+                    else if (type == UpgradeType.Percent)
+                        stat.value *= (1f + amount);
+
+                    return;
+                }
             }
         }
     }
 
-    // Get current level of an upgrade
+    // --- Get current level by index ---
     public int GetUpgradeLevel(int upgradeIndex)
     {
         if (upgradeIndex < 0 || upgradeIndex >= upgrades.Count)
@@ -95,7 +128,33 @@ public class UpgradeManager : MonoBehaviour
         return upgrades[upgradeIndex].currentLevel;
     }
 
-    // Optional: reset all upgrades (for testing)
+    // --- Get current level by StatType + UpgradeType ---
+    public int GetUpgradeLevelByType(StatType statType, UpgradeType upgradeType)
+    {
+        var upgrade = upgrades.Find(u => u.statType == statType && u.upgradeType == upgradeType);
+        return upgrade != null ? upgrade.currentLevel : 0;
+    }
+
+    // --- Get current stat value from TowerStats ---
+    public float GetStatValue(StatType statType)
+    {
+        if (towerStats == null) return 0f;
+
+        List<Stat>[] statLists = { towerStats.attackStats, towerStats.defenceStats, towerStats.utilityStats };
+
+        foreach (var list in statLists)
+        {
+            foreach (var stat in list)
+            {
+                if (stat.type == statType)
+                    return stat.value;
+            }
+        }
+
+        return 0f;
+    }
+
+    // --- Reset all upgrades ---
     public void ResetUpgrades()
     {
         foreach (var upgrade in upgrades)

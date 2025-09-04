@@ -13,7 +13,7 @@ public class WalletUI : MonoBehaviour
     private void Update()
     {
         // Update UI each frame (you can optimize with events later)
-        moneyText.text = $"Money: {wallet.GetMoney()}";
+        moneyText.text = $"Money: {wallet.GetCash()}";
         coinsText.text = $"Coins: {wallet.GetCoins()}";
         gemsText.text = $"Gems: {wallet.GetGems()}";
     }

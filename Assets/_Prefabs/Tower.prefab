@@ -43,6 +43,7 @@ GameObject:
   - component: {fileID: 4149896787489583632}
   - component: {fileID: 3692778171968122425}
   - component: {fileID: 2649525705093885549}
+  - component: {fileID: -4586862067844213893}
   m_Layer: 0
   m_Name: Tower
   m_TagString: Player
@@ -181,6 +182,112 @@ MonoBehaviour:
   target: {fileID: 0}
   partToRotate: {fileID: 4099255287037586553}
   enemyTag: Enemy
+--- !u!114 &-4586862067844213893
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 909188277983895377}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62b4ecba4fb79fe458638bce12054c26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  towerStats: {fileID: 2649525705093885549}
+  wallet: {fileID: 0}
+  upgrades:
+  - statType: 0
+    upgradeType: 0
+    upgradeAmount: 1
+    cost: 1
+    maxLevel: 0
+    currentLevel: 0
+    isPermanent: 0
+  - statType: 1
+    upgradeType: 0
+    upgradeAmount: 0.25
+    cost: 1
+    maxLevel: 0
+    currentLevel: 0
+    isPermanent: 0
+  - statType: 2
+    upgradeType: 1
+    upgradeAmount: 0.05
+    cost: 1
+    maxLevel: 0
+    currentLevel: 0
+    isPermanent: 0
+  - statType: 3
+    upgradeType: 1
+    upgradeAmount: 1
+    cost: 1
+    maxLevel: 100
+    currentLevel: 0
+    isPermanent: 0
+  - statType: 4
+    upgradeType: 1
+    upgradeAmount: 10
+    cost: 1
+    maxLevel: 0
+    currentLevel: 0
+    isPermanent: 0
+  - statType: 5
+    upgradeType: 0
+    upgradeAmount: 10
+    cost: 1
+    maxLevel: 0
+    currentLevel: 0
+    isPermanent: 0
+  - statType: 6
+    upgradeType: 0
+    upgradeAmount: 10
+    cost: 1
+    maxLevel: 0
+    currentLevel: 0
+    isPermanent: 0
+  - statType: 7
+    upgradeType: 0
+    upgradeAmount: 5
+    cost: 1
+    maxLevel: 0
+    currentLevel: 0
+    isPermanent: 0
+  - statType: 8
+    upgradeType: 0
+    upgradeAmount: 5
+    cost: 1
+    maxLevel: 0
+    currentLevel: 0
+    isPermanent: 0
+  - statType: 9
+    upgradeType: 1
+    upgradeAmount: 2
+    cost: 1
+    maxLevel: 0
+    currentLevel: 0
+    isPermanent: 0
+  - statType: 10
+    upgradeType: 0
+    upgradeAmount: 1
+    cost: 1
+    maxLevel: 0
+    currentLevel: 0
+    isPermanent: 0
+  - statType: 11
+    upgradeType: 1
+    upgradeAmount: 1
+    cost: 1
+    maxLevel: 0
+    currentLevel: 0
+    isPermanent: 0
+  - statType: 12
+    upgradeType: 0
+    upgradeAmount: 1
+    cost: 1
+    maxLevel: 0
+    currentLevel: 0
+    isPermanent: 0
 --- !u!1 &2239621130385216392
 GameObject:
   m_ObjectHideFlags: 0

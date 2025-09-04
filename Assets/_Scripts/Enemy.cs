@@ -34,7 +34,7 @@ public class Enemy : MonoBehaviour
     [SerializeField] private float currentSpeed;
 
     [Header("Base Stats (Editable)")]
-    public float baseHealth = 10f;
+    public float baseHealth = 1f;
     public float baseDamage = 2f;
     public float baseSpeed = 5f;
 
@@ -44,7 +44,7 @@ public class Enemy : MonoBehaviour
     public float linearDamageGrowth = 0.2f;
 
     [Header("Rewards")]
-    public int moneyReward = 1;  // Soft currency
+    public int cashReward = 1;  // Soft currency
     public int coinsReward = 0;  // Hard currency
 
     [Header("References")]
@@ -114,7 +114,7 @@ public class Enemy : MonoBehaviour
 
         if (wallet != null)
         {
-            wallet.AddMoney(moneyReward);
+            wallet.AddCash(cashReward);
             wallet.AddCoins(coinsReward);
         }
         else
@@ -136,4 +136,17 @@ public class Enemy : MonoBehaviour
             _ => 0f
         };
     }
+    public (float health, float damage) GetPreviewStats(int roundNumber)
+    {
+        int typeMultiplier = enemyTypeMultiplier[enemyType];
+
+        float scaledHealth = (baseHealth * typeMultiplier) + (linearHealthGrowth * roundNumber);
+        float scaledDamage = (baseDamage * typeMultiplier) + (linearDamageGrowth * roundNumber);
+
+        float previewHealth = scaledHealth * Mathf.Pow(roundExponentBase, roundNumber);
+        float previewDamage = scaledDamage * Mathf.Pow(roundExponentBase, roundNumber);
+
+        return (previewHealth, previewDamage);
+    }
+
 }
