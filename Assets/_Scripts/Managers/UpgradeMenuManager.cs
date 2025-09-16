@@ -12,7 +12,10 @@ public class MenuController : MonoBehaviour
     private int currentPage = -1;   // -1 = no page open
     private bool isOpen = false;    // tracks if the menu is open
 
-   
+    private void Start()
+    {
+        OpenMenu(0); // Open first page by default
+    }
     public void TogglePage(int pageIndex)
     {
         if (pageIndex < 0 || pageIndex >= menuPages.Length)

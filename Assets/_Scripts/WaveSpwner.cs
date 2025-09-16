@@ -24,6 +24,7 @@ public class WaveSpawner : MonoBehaviour
 
     // ----- Public references -----
     public Transform player;                   // Reference to the player position
+    public TowerStats tower;           // Reference to the player's stats
     public EnemySpawnInfo[] enemiesSpawnInfo;  // Array of possible enemy types
     public GameObject bossEnemyPrefab;         // Reference to boss prefab
 
@@ -47,8 +48,13 @@ public class WaveSpawner : MonoBehaviour
 
     void Start()
     {
+        player = GameObject.FindGameObjectWithTag("Player").transform;
         // Set initial number of enemies
         enemiesToSpawn = waveSettings.initialEnemyCount;
+
+        // Reset the players Stats
+        tower = GameObject.FindGameObjectWithTag("Player").GetComponent<TowerStats>();
+        tower.ResetStats();
 
         // Start the main loop of rounds
         StartCoroutine(RoundLoop());

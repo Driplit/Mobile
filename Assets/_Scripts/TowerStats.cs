@@ -1,5 +1,6 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public enum StatType
 {
@@ -10,7 +11,7 @@ public enum StatType
     CritMultiplier,
     Range,
 
-    // ----- DEFENCE -----
+    // ----- DEFENSE -----
     MaxHealth,
     HealthRegen,
     DamageReduction,
@@ -27,7 +28,17 @@ public enum StatType
 public class Stat
 {
     public StatType type;
+    public float baseValue;
     public float value;
+
+    public Stat() { }
+
+    public Stat(StatType type, float baseValue)
+    {
+        this.type = type;
+        this.baseValue = baseValue;
+        this.value = baseValue;
+    }
 }
 
 public class TowerStats : MonoBehaviour
@@ -35,40 +46,31 @@ public class TowerStats : MonoBehaviour
     [Header("Attack Stats")]
     public List<Stat> attackStats = new List<Stat>()
     {
-        new Stat() { type = StatType.Damage,         value = 3f },
-        new Stat() { type = StatType.AttackSpeed,    value = 1f },
-        new Stat() { type = StatType.CritChance,     value = 0f },
-        new Stat() { type = StatType.CritMultiplier, value = 1f },
-        new Stat() { type = StatType.Range,          value = 5f }
+        new Stat(StatType.Damage, 3f),
+        new Stat(StatType.AttackSpeed, 1f),
+        new Stat(StatType.CritChance, 0f),
+        new Stat(StatType.CritMultiplier, 1f),
+        new Stat(StatType.Range, 5f)
     };
 
-    [Header("Defence Stats")]
+    [Header("Defense Stats")]
     [SerializeField] private float currentHealth;
     public List<Stat> defenceStats = new List<Stat>()
     {
-        new Stat() { type = StatType.MaxHealth,         value = 5f },
-        new Stat() { type = StatType.HealthRegen,       value = 0.09f },
-        new Stat() { type = StatType.DamageReduction,   value = 0f },
-        new Stat() { type = StatType.Armor,             value = 0f }
+        new Stat(StatType.MaxHealth, 5f),
+        new Stat(StatType.HealthRegen, 0.09f),
+        new Stat(StatType.DamageReduction, 0f),
+        new Stat(StatType.Armor, 0f)
     };
 
     [Header("Utility Stats")]
     public List<Stat> utilityStats = new List<Stat>()
     {
-        new Stat() { type = StatType.CashMultiplier, value = 1f },
-        new Stat() { type = StatType.CashPerWave,    value = 0f },
-        new Stat() { type = StatType.CoinsPerKill,   value = 0f },
-        new Stat() { type = StatType.CoinsPerWave,   value = 0f }
+        new Stat(StatType.CashMultiplier, 1f),
+        new Stat(StatType.CashPerWave, 0f),
+        new Stat(StatType.CoinsPerKill, 0f),
+        new Stat(StatType.CoinsPerWave, 0f)
     };
-
-    [Header("Targeting")]
-    public GameObject bulletPrefab;
-    public Transform firePoint;
-    public Transform target;
-    public Transform partToRotate;
-    public string enemyTag = "Enemy";
-
-    private float fireCountdown = 0f;
 
     // --- UI-friendly properties ---
     public float CurrentHealth => currentHealth;
@@ -77,10 +79,43 @@ public class TowerStats : MonoBehaviour
     public float HealthRegen => GetStat(StatType.HealthRegen);
     public float CashMultiplier => GetStat(StatType.CashMultiplier);
 
+
+    [Header("Targeting")]
+    public GameObject bulletPrefab;
+    public Transform firePoint;
+    public Transform partToRotate;
+    public string enemyTag = "Enemy";
+
+    private Transform target;
+    private float fireCountdown = 0f;
+
     void Start()
     {
-        currentHealth = MaxHealth; // Start full health
+        ResetStats(); // apply permanent upgrades
+        currentHealth = MaxHealth;
         InvokeRepeating(nameof(UpdateTarget), 0f, 0.5f);
+    }
+
+    void Update()
+    {
+        if (target != null)
+        {
+            RotateTowardTarget();
+            if (fireCountdown <= 0f)
+            {
+                Shoot();
+                fireCountdown = 1f / GetStat(StatType.AttackSpeed);
+            }
+        }
+
+        fireCountdown -= Time.deltaTime;
+
+        // Health regeneration
+        if (currentHealth < MaxHealth)
+        {
+            currentHealth += HealthRegen * Time.deltaTime;
+            currentHealth = Mathf.Clamp(currentHealth, 0f, MaxHealth);
+        }
     }
 
     void UpdateTarget()
@@ -91,73 +126,89 @@ public class TowerStats : MonoBehaviour
 
         foreach (GameObject enemy in enemies)
         {
-            float distanceToEnemy = Vector3.Distance(transform.position, enemy.transform.position);
-            if (distanceToEnemy < shortestDistance)
+            float distance = Vector3.Distance(transform.position, enemy.transform.position);
+            if (distance < shortestDistance)
             {
-                shortestDistance = distanceToEnemy;
+                shortestDistance = distance;
                 nearestEnemy = enemy;
             }
         }
 
         if (nearestEnemy != null && shortestDistance <= GetStat(StatType.Range))
-        {
             target = nearestEnemy.transform;
-        }
         else
-        {
             target = null;
-        }
     }
 
-    void Update()
+    void RotateTowardTarget()
     {
-        if (target != null)
-        {
-            // Rotate tower to face target
-            Vector3 dir = target.position - transform.position;
-            Quaternion lookRotation = Quaternion.LookRotation(dir);
-            Vector3 rotation = lookRotation.eulerAngles;
-            partToRotate.rotation = Quaternion.Euler(0f, rotation.y, 0f);
-
-            if (fireCountdown <= 0f)
-            {
-                Shoot();
-                fireCountdown = 1f / GetStat(StatType.AttackSpeed);
-            }
-        }
-
-        fireCountdown -= Time.deltaTime;
-
-        // Health regen
-        if (currentHealth < MaxHealth)
-        {
-            currentHealth += GetStat(StatType.HealthRegen) * Time.deltaTime;
-            currentHealth = Mathf.Clamp(currentHealth, 0f, MaxHealth);
-        }
+        Vector3 dir = target.position - transform.position;
+        Quaternion lookRotation = Quaternion.LookRotation(dir);
+        Vector3 rotation = lookRotation.eulerAngles;
+        partToRotate.rotation = Quaternion.Euler(0f, rotation.y, 0f);
     }
 
     void Shoot()
     {
+        if (bulletPrefab == null || target == null) return;
+
         GameObject bulletGO = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
         Bullet bullet = bulletGO.GetComponent<Bullet>();
-
         if (bullet != null)
-        {
             bullet.Seek(target);
-        }
     }
 
     public float GetStat(StatType type)
     {
         foreach (var stat in attackStats)
             if (stat.type == type) return stat.value;
-
         foreach (var stat in defenceStats)
             if (stat.type == type) return stat.value;
-
         foreach (var stat in utilityStats)
             if (stat.type == type) return stat.value;
-
         return 0f;
     }
+
+    public void ResetStats()
+    {
+        List<Stat>[] statLists = { attackStats, defenceStats, utilityStats };
+
+        foreach (var list in statLists)
+        {
+            foreach (var stat in list)
+            {
+                // Apply permanent upgrades on top of base value
+                float upgradedValue = PermanentUpgradesManager.Instance.ApplyUpgrades(stat.type, stat.baseValue);
+
+                // DO NOT overwrite baseValue
+                stat.value = upgradedValue;
+
+                // If MaxHealth, update currentHealth
+                if (stat.type == StatType.MaxHealth)
+                    currentHealth = upgradedValue;
+            }
+        }
+    }
+
+    public void ApplyPermanentUpgrade(StatType type, float newValue)
+    {
+        List<Stat>[] statLists = { attackStats, defenceStats, utilityStats };
+
+        foreach (var list in statLists)
+        {
+            foreach (var stat in list)
+            {
+                if (stat.type == type)
+                    stat.value = newValue;
+            }
+        }
+    }
+
+    public void Heal(float amount)
+    {
+        currentHealth += amount;
+        currentHealth = Mathf.Clamp(currentHealth, 0f, MaxHealth);
+    }
+
+   
 }

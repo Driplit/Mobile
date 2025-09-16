@@ -152,12 +152,12 @@ MonoBehaviour:
   enemyType: 0
   currentHealth: 0
   currentDamage: 0
-  currentSpeed: 10
+  currentSpeed: 0
   baseHealth: 1
   baseDamage: 1
   baseSpeed: 1
   roundExponentBase: 1.05
   linearHealthGrowth: 0.2
   linearDamageGrowth: 0.2
-  moneyReward: 1
+  cashReward: 1
   coinsReward: 0

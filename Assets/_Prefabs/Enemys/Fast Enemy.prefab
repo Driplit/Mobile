@@ -153,11 +153,11 @@ MonoBehaviour:
   currentHealth: 0
   currentDamage: 0
   currentSpeed: 0
-  baseHealth: 1
+  baseHealth: 2
   baseDamage: 1
-  baseSpeed: 1
+  baseSpeed: 2
   roundExponentBase: 1.05
   linearHealthGrowth: 0.2
   linearDamageGrowth: 0.2
-  moneyReward: 1
+  cashReward: 1
   coinsReward: 1

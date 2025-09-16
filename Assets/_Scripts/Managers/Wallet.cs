@@ -3,34 +3,57 @@ using TMPro;
 
 public class Wallet : MonoBehaviour
 {
+    public static Wallet Instance { get; private set; }
+
     [Header("Resources")]
-    [SerializeField] private int money = 0; // resets each round
+    [SerializeField] private int cash = 0; // resets each round
     [SerializeField] private int coins = 0; // persistent currency
     [SerializeField] private int gems = 0;  // premium currency
 
     [Header("UI References")]
-    [SerializeField] private TMP_Text moneyText;
-    [SerializeField] private TMP_Text coinsText;
-    [SerializeField] private TMP_Text gemsText;
+    [SerializeField] private TMP_Text[] cashText;
+    [SerializeField] private TMP_Text[] coinsText;
+    [SerializeField] private TMP_Text[] gemsText;
+
+    private void Awake()
+    {
+        // Singleton pattern
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
 
     private void Start()
     {
         UpdateUI();
     }
 
-    // --- Money methods ---
-    public int GetMoney() => money;
-    public void AddMoney(int amount)
+    // --- Cash methods ---
+    public int GetCash() => cash;
+    public void AddCash(int amount)
     {
-        money += Mathf.Max(0, amount);
-       // Debug.Log($"Money added: {amount}. Total money: {money}");
+        cash += Mathf.Max(0, amount);
         UpdateUI();
     }
-    public void ResetMoney()
+    public void ResetCash()
     {
-        money = 0;
-        Debug.Log("Money reset to 0 at end of round.");
+        cash = 0;
         UpdateUI();
+    }
+    public bool SpendCash(int amount)
+    {
+        if (cash >= amount)
+        {
+            cash -= amount;
+            UpdateUI();
+            return true;
+        }
+        return false;
     }
 
     // --- Coins methods ---
@@ -38,7 +61,6 @@ public class Wallet : MonoBehaviour
     public void AddCoins(int amount)
     {
         coins += Mathf.Max(0, amount);
-        //Debug.Log($"Coins added: {amount}. Total coins: {coins}");
         UpdateUI();
     }
     public bool SpendCoins(int amount)
@@ -46,11 +68,9 @@ public class Wallet : MonoBehaviour
         if (coins >= amount)
         {
             coins -= amount;
-            Debug.Log($"Coins spent: {amount}. Coins left: {coins}");
             UpdateUI();
             return true;
         }
-        Debug.Log("Not enough coins.");
         return false;
     }
 
@@ -59,7 +79,6 @@ public class Wallet : MonoBehaviour
     public void AddGems(int amount)
     {
         gems += Mathf.Max(0, amount);
-        Debug.Log($"Gems added: {amount}. Total gems: {gems}");
         UpdateUI();
     }
     public bool SpendGems(int amount)
@@ -67,19 +86,31 @@ public class Wallet : MonoBehaviour
         if (gems >= amount)
         {
             gems -= amount;
-            Debug.Log($"Gems spent: {amount}. Gems left: {gems}");
             UpdateUI();
             return true;
         }
-        Debug.Log("Not enough gems.");
         return false;
     }
 
     // --- Update UI ---
     private void UpdateUI()
     {
-        if (moneyText != null) moneyText.text = $"Money: {money}";
-        if (coinsText != null) coinsText.text = $"Coins: {coins}";
-        if (gemsText != null) gemsText.text = $"Gems: {gems}";
+        if (cashText != null)
+        {
+            foreach (var text in cashText)
+                if (text != null) text.text = cash.ToString();
+        }
+
+        if (coinsText != null)
+        {
+            foreach (var text in coinsText)
+                if (text != null) text.text = coins.ToString();
+        }
+
+        if (gemsText != null)
+        {
+            foreach (var text in gemsText)
+                if (text != null) text.text = gems.ToString();
+        }
     }
 }
