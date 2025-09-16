@@ -5,45 +5,27 @@ using TMPro;
 public class ShopButtonUI : MonoBehaviour
 {
     [Header("Setup")]
-    public bool isPermanentShop = false;  // true = coins (main menu), false = cash (in-game)
-    public StatType statType;             // which stat this button upgrades
-    public UpgradeType upgradeType;       // flat or percent
-    public int baseCost = 50;             // cost of first upgrade
-    public int costGrowth = 20;           // extra cost per level
+    public bool isPermanentShop = false;      // true = permanent (coins), false = in-game (cash)
+    public StatType statType;                 // Which stat this button upgrades
+    public UpgradeType upgradeType;           // Flat or Percent
+    public int baseCost;                 // Base cost of first upgrade
+    public int costGrowth;               // Extra cost per level
 
     [Header("UI References")]
-    public TMP_Text nameText;             // Upgrade name
-    public TMP_Text valueText;            // Current value
-    public TMP_Text costText;             // Cost with currency
-    public Button buyButton;              // Button to buy
+    public TMP_Text nameText;
+    public TMP_Text valueText;
+    public TMP_Text costText;
+    public Button buyButton;
 
     private Wallet wallet;
     private UpgradeManager upgradeManager;
     private PermanentUpgradesManager permanentManager;
+    private TowerStats towerStats;
 
     private void Start()
     {
         wallet = Wallet.Instance;
-
-        // Delay initialization if needed
-        if (isPermanentShop && PermanentUpgradesManager.Instance == null)
-        {
-            Debug.Log("PermanentUpgradesManager not ready, delaying setup");
-            Invoke(nameof(InitializeButton), 0.1f);
-        }
-        else if (!isPermanentShop && UpgradeManager.Instance == null)
-        {
-            Debug.Log("UpgradeManager not ready, delaying setup");
-            Invoke(nameof(InitializeButton), 0.1f);
-        }
-        else
-        {
-            InitializeButton();
-        }
-    }
-
-    private void InitializeButton()
-    {
+        towerStats = FindFirstObjectByType<TowerStats>();
         upgradeManager = UpgradeManager.Instance;
         permanentManager = PermanentUpgradesManager.Instance;
 
@@ -57,21 +39,22 @@ public class ShopButtonUI : MonoBehaviour
     {
         if (isPermanentShop)
         {
-            if (permanentManager == null) return 0; // safe fallback
-            return permanentManager.GetUpgradeLevel(statType, upgradeType);
+            return permanentManager != null
+                ? permanentManager.GetUpgradeLevel(statType, upgradeType)
+                : 0;
         }
         else
         {
-            if (upgradeManager == null) return 0; // safe fallback
-            return upgradeManager.GetUpgradeLevelByType(statType, upgradeType);
+            return upgradeManager != null
+                ? upgradeManager.GetUpgradeLevelByType(statType, upgradeType)
+                : 0;
         }
     }
 
     private float GetCurrentStatValue()
     {
-        return isPermanentShop
-            ? permanentManager.ApplyUpgrades(statType, 1f)
-            : upgradeManager.GetStatValue(statType);
+        if (towerStats == null) return 0f;
+        return towerStats.GetStat(statType);
     }
 
     private int GetUpgradeCost()
@@ -102,7 +85,16 @@ public class ShopButtonUI : MonoBehaviour
                 Debug.Log("Not enough coins!");
                 return;
             }
+
+            // Upgrade the permanent stat
             permanentManager.UpgradeStat(statType, upgradeType, 1f);
+
+            // Apply permanent upgrade to the tower immediately
+            if (towerStats != null)
+            {
+                float newBaseValue = permanentManager.ApplyUpgrades(statType, towerStats.GetStat(statType));
+                towerStats.ApplyPermanentUpgrade(statType, newBaseValue);
+            }
         }
         else
         {
@@ -111,6 +103,8 @@ public class ShopButtonUI : MonoBehaviour
                 Debug.Log("Not enough cash!");
                 return;
             }
+
+            // Apply in-game upgrade
             upgradeManager.BuyUpgrade(statType, upgradeType, wallet);
         }
 

@@ -26,12 +26,17 @@ public class RoundInformationUI : MonoBehaviour
     [SerializeField] private TMP_Text coinMultiplierText;
     [SerializeField] private Slider playerHealthSlider;
 
+    
     private void Update()
     {
         // Try to get waveSpawner if it's null (scene changed)
         if (waveSpawner == null)
         {
             waveSpawner = FindFirstObjectByType<WaveSpawner>();
+        }
+        if (towerStats == null)
+        {
+           towerStats = FindFirstObjectByType<TowerStats>();
         }
 
         UpdateRoundInfo();

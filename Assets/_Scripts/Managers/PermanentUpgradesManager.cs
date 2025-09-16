@@ -27,7 +27,7 @@ public class PermanentUpgradesManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        InitDefaults();  // 👈 make sure upgrades exist
+        InitDefaults();
         LoadUpgrades();
     }
 
@@ -35,7 +35,6 @@ public class PermanentUpgradesManager : MonoBehaviour
     {
         if (upgrades.Count == 0)
         {
-            // Example defaults – you can add as many as you want
             upgrades.Add(new PermanentUpgrade { statType = StatType.MaxHealth, upgradeType = UpgradeType.Flat, upgradeStep = 5f, level = 0 });
             upgrades.Add(new PermanentUpgrade { statType = StatType.Damage, upgradeType = UpgradeType.Percent, upgradeStep = 0.1f, level = 0 });
             upgrades.Add(new PermanentUpgrade { statType = StatType.AttackSpeed, upgradeType = UpgradeType.Flat, upgradeStep = 0.5f, level = 0 });
@@ -44,23 +43,25 @@ public class PermanentUpgradesManager : MonoBehaviour
 
     public float ApplyUpgrades(StatType type, float baseValue)
     {
+        float result = baseValue;
+
         foreach (var upgrade in upgrades)
         {
             if (upgrade.statType == type && upgrade.level > 0)
             {
                 if (upgrade.upgradeType == UpgradeType.Flat)
-                    baseValue += upgrade.upgradeStep * upgrade.level;
+                    result += upgrade.upgradeStep * upgrade.level;
                 else if (upgrade.upgradeType == UpgradeType.Percent)
-                    baseValue *= 1f + (upgrade.upgradeStep * upgrade.level);
+                    result *= 1f + (upgrade.upgradeStep * upgrade.level);
             }
         }
-        return baseValue;
+
+        return result;
     }
 
     public void UpgradeStat(StatType type, UpgradeType upgradeType, float stepValue)
     {
         var upgrade = upgrades.Find(u => u.statType == type && u.upgradeType == upgradeType);
-
         if (upgrade == null)
         {
             upgrade = new PermanentUpgrade { statType = type, upgradeType = upgradeType, upgradeStep = stepValue, level = 0 };
@@ -77,7 +78,6 @@ public class PermanentUpgradesManager : MonoBehaviour
         return upgrade != null ? upgrade.level : 0;
     }
 
-
     private void SaveUpgrades()
     {
         foreach (var upgrade in upgrades)
@@ -92,8 +92,12 @@ public class PermanentUpgradesManager : MonoBehaviour
     {
         foreach (var upgrade in upgrades)
         {
-            string key = $"PermUpgrade_{upgrade.statType}_{upgrade.upgradeType}";
-            upgrade.level = PlayerPrefs.GetInt(key, 0);
+            //string key = $"PermUpgrade_{upgrade.statType}_{upgrade.upgradeType}";
+            //// Only load saved levels if PlayerPrefs has a key
+            //if (PlayerPrefs.HasKey(key))
+            //    upgrade.level = PlayerPrefs.GetInt(key, 0);
+            //else
+            upgrade.level = 0; // fresh install = no upgrades
         }
     }
 
