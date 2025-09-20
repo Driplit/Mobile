@@ -201,21 +201,21 @@ MonoBehaviour:
     currentLevel: 0
     isPermanent: 0
   - statType: 2
-    upgradeType: 1
+    upgradeType: 0
     upgradeAmount: 0.05
     cost: 1
     maxLevel: 0
     currentLevel: 0
     isPermanent: 0
   - statType: 3
-    upgradeType: 1
+    upgradeType: 0
     upgradeAmount: 1
     cost: 1
     maxLevel: 100
     currentLevel: 0
     isPermanent: 0
   - statType: 4
-    upgradeType: 1
+    upgradeType: 0
     upgradeAmount: 10
     cost: 1
     maxLevel: 0
