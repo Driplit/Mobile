@@ -43,25 +43,35 @@ public class UpgradeManager : MonoBehaviour
 
         walletToUse.SpendCash(upgrade.cost);
 
-        // Apply upgrade
         if (towerStats != null)
         {
+            // Store old value
+            float oldValue = towerStats.GetStat(statType);
+
+            // Apply upgrade
             ApplyUpgrade(towerStats, upgrade.statType, upgrade.upgradeType, upgrade.upgradeAmount);
 
-            // If permanent, update tower base stats immediately
+            float newValue = towerStats.GetStat(statType);
+
+            // If MaxHealth, add difference to current health
+            if (statType == StatType.MaxHealth)
+            {
+                float difference = newValue - oldValue;
+                towerStats.Heal(difference);
+            }
+
+            // If permanent (should not happen here normally), also update PermanentUpgradesManager
             if (upgrade.isPermanent)
             {
-                float newValue = towerStats.GetStat(upgrade.statType);
-                towerStats.ApplyPermanentUpgrade(upgrade.statType, newValue);
-
-                // Update PermanentUpgradesManager
-                PermanentUpgradesManager.Instance.UpgradeStat(upgrade.statType, upgrade.upgradeType, upgrade.upgradeAmount);
+                towerStats.ApplyPermanentUpgrade(statType, newValue);
+                PermanentUpgradesManager.Instance.UpgradeStat(statType, upgrade.upgradeType, upgrade.upgradeAmount);
             }
         }
 
         upgrade.currentLevel++;
         return true;
     }
+
 
     private void ApplyUpgrade(TowerStats tower, StatType statType, UpgradeType type, float amount)
     {

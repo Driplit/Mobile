@@ -43,20 +43,18 @@ public class PermanentUpgradesManager : MonoBehaviour
 
     public float ApplyUpgrades(StatType type, float baseValue)
     {
-        float result = baseValue;
-
+        // Only apply upgrades if level > 0
         foreach (var upgrade in upgrades)
         {
             if (upgrade.statType == type && upgrade.level > 0)
             {
                 if (upgrade.upgradeType == UpgradeType.Flat)
-                    result += upgrade.upgradeStep * upgrade.level;
+                    baseValue += upgrade.upgradeStep * upgrade.level;
                 else if (upgrade.upgradeType == UpgradeType.Percent)
-                    result *= 1f + (upgrade.upgradeStep * upgrade.level);
+                    baseValue *= 1f + (upgrade.upgradeStep * upgrade.level);
             }
         }
-
-        return result;
+        return baseValue;
     }
 
     public void UpgradeStat(StatType type, UpgradeType upgradeType, float stepValue)
@@ -92,12 +90,12 @@ public class PermanentUpgradesManager : MonoBehaviour
     {
         foreach (var upgrade in upgrades)
         {
-            //string key = $"PermUpgrade_{upgrade.statType}_{upgrade.upgradeType}";
-            //// Only load saved levels if PlayerPrefs has a key
-            //if (PlayerPrefs.HasKey(key))
-            //    upgrade.level = PlayerPrefs.GetInt(key, 0);
-            //else
-            upgrade.level = 0; // fresh install = no upgrades
+            string key = $"PermUpgrade_{upgrade.statType}_{upgrade.upgradeType}";
+            // Only load saved levels if PlayerPrefs has a key
+            if (PlayerPrefs.HasKey(key))
+                upgrade.level = PlayerPrefs.GetInt(key, 0);
+            else
+                upgrade.level = 0; // fresh install = no upgrades
         }
     }
 

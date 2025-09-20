@@ -8,8 +8,8 @@ public class ShopButtonUI : MonoBehaviour
     public bool isPermanentShop = false;      // true = permanent (coins), false = in-game (cash)
     public StatType statType;                 // Which stat this button upgrades
     public UpgradeType upgradeType;           // Flat or Percent
-    public int baseCost;                 // Base cost of first upgrade
-    public int costGrowth;               // Extra cost per level
+    public int baseCost;                      // Base cost of first upgrade
+    public int costGrowth;                    // Extra cost per level
 
     [Header("UI References")]
     public TMP_Text nameText;
@@ -89,18 +89,35 @@ public class ShopButtonUI : MonoBehaviour
             // Upgrade the permanent stat
             permanentManager.UpgradeStat(statType, upgradeType, 1f);
 
-            // Apply permanent upgrade to the tower immediately
             if (towerStats != null)
             {
-                float newBaseValue = permanentManager.ApplyUpgrades(statType, towerStats.GetStat(statType));
-                towerStats.ApplyPermanentUpgrade(statType, newBaseValue);
+                // Get the base value of the stat
+                float baseStatValue = 0f;
+                foreach (var stat in towerStats.attackStats)
+                    if (stat.type == statType) baseStatValue = stat.baseValue;
+                foreach (var stat in towerStats.defenceStats)
+                    if (stat.type == statType) baseStatValue = stat.baseValue;
+                foreach (var stat in towerStats.utilityStats)
+                    if (stat.type == statType) baseStatValue = stat.baseValue;
+
+                float oldValue = towerStats.GetStat(statType);
+                float newValue = permanentManager.ApplyUpgrades(statType, baseStatValue);
+
+                // If MaxHealth, add the difference to current health
+                if (statType == StatType.MaxHealth)
+                {
+                    float difference = newValue - oldValue;
+                    towerStats.Heal(difference);
+                }
+
+                towerStats.ApplyPermanentUpgrade(statType, newValue);
             }
         }
         else
         {
             if (!wallet.SpendCash(cost))
             {
-                Debug.Log("Not enough cash!");
+                //Debug.Log("Not enough cash!");
                 return;
             }
 

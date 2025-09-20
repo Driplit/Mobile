@@ -24,13 +24,13 @@ public class SlidersUI : MonoBehaviour
         {
             if (timerSlider != null)
             {
-                float timerPercent = waveSpawner.TimeRemaining / waveSpawner.WaveSettings.timePerRound;
+                float timerPercent = waveSpawner.TimeRemaining / waveSpawner.RoundDuration;
                 timerSlider.value = Mathf.Clamp01(timerPercent);
             }
 
             if (cooldownSlider != null)
             {
-                float cooldownMax = waveSpawner.WaveSettings.timeBetweenRounds;
+                float cooldownMax = waveSpawner.CooldownRemaining;
                 float cooldownPercent = waveSpawner.CooldownRemaining / cooldownMax;
                 cooldownSlider.value = Mathf.Clamp01(cooldownPercent);
             }

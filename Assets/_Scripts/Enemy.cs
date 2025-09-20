@@ -39,17 +39,18 @@ public class Enemy : MonoBehaviour
     public float baseSpeed = 5f;
 
     [Header("Scaling Settings")]
-    public float roundExponentBase = 1.05f;   // exponential difficulty scaling
+    public float roundExponentBase = 1.05f;
     public float linearHealthGrowth = 0.2f;
     public float linearDamageGrowth = 0.2f;
 
     [Header("Rewards")]
-    public int cashReward = 1;  // Soft currency
-    public int coinsReward = 0;  // Hard currency
+    public int cashReward = 1;
+    public int coinsReward = 0;
 
     [Header("References")]
     private Transform player;
     private Wallet wallet;
+    private TierTracker tierTracker;
 
     // multipliers by enemy type
     private Dictionary<EnemyType, int> enemyTypeMultiplier = new Dictionary<EnemyType, int>()
@@ -64,68 +65,73 @@ public class Enemy : MonoBehaviour
     {
         wallet = FindAnyObjectByType<Wallet>();
         player = GameObject.FindWithTag("Player")?.transform;
+        tierTracker = FindAnyObjectByType<TierTracker>();
     }
 
     private void Update()
     {
+
         if (player == null) return;
 
-        // Move toward player
         Vector3 direction = player.position - transform.position;
-        direction.y = 0; // stay grounded
+        direction.y = 0;
 
         if (direction.magnitude > 0.1f)
         {
             Vector3 move = direction.normalized * currentSpeed * Time.deltaTime;
             transform.position += move;
 
-            // Smooth rotate toward player
             Quaternion targetRotation = Quaternion.LookRotation(direction);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 5f * Time.deltaTime);
         }
+        
     }
 
+    /// <summary>
+    /// Calculates stats based on round and tier.
+    /// </summary>
     public void CalculateStats(int roundNumber)
     {
         int typeMultiplier = enemyTypeMultiplier[enemyType];
 
+        // Base round scaling
         float scaledHealth = (baseHealth * typeMultiplier) + (linearHealthGrowth * roundNumber);
         float scaledDamage = (baseDamage * typeMultiplier) + (linearDamageGrowth * roundNumber);
 
-        currentHealth = scaledHealth * Mathf.Pow(roundExponentBase, roundNumber);
-        currentDamage = scaledDamage * Mathf.Pow(roundExponentBase, roundNumber);
-        currentSpeed = baseSpeed; // speed could also scale if you want
+        scaledHealth *= Mathf.Pow(roundExponentBase, roundNumber);
+        scaledDamage *= Mathf.Pow(roundExponentBase, roundNumber);
+
+        // Grab current tier from TierTracker (default 1 if null)
+        int tier = tierTracker != null ? tierTracker.CurrentTier : 1;
+
+        // Apply tier multipliers
+        float tierMultiplier = 1f;
+        if (tier == 2) tierMultiplier = 2.0f;           // +10%
+        if (tier == 3) tierMultiplier = 3.0f;   // +26.5%
+
+        currentHealth = scaledHealth * tierMultiplier;
+        currentDamage = scaledDamage * tierMultiplier;
+        currentSpeed = baseSpeed; // optionally scale speed too
     }
+
 
     public void TakeDamage(float damage)
     {
         currentHealth -= damage;
-        Debug.Log($"{gameObject.name} took {damage} damage. Remaining HP: {currentHealth}");
-
-        if (currentHealth <= 0)
-        {
-            Die();
-        }
+        if (currentHealth <= 0) Die();
     }
 
     private void Die()
     {
-        Debug.Log($"{gameObject.name} has died.");
-
         if (wallet != null)
         {
             wallet.AddCash(cashReward);
             wallet.AddCoins(coinsReward);
         }
-        else
-        {
-            Debug.LogWarning("Wallet reference missing!");
-        }
 
         Destroy(gameObject);
     }
 
-    // For UI or other scripts to fetch a stat
     public float GetStat(EnemyStats type)
     {
         return type switch
@@ -136,17 +142,28 @@ public class Enemy : MonoBehaviour
             _ => 0f
         };
     }
-    public (float health, float damage) GetPreviewStats(int roundNumber)
+
+    /// <summary>
+    /// Returns preview stats for a round and optional tier (used in UI).
+    /// </summary>
+    public (float health, float damage) GetPreviewStats(int roundNumber, int tier = 1)
     {
         int typeMultiplier = enemyTypeMultiplier[enemyType];
 
         float scaledHealth = (baseHealth * typeMultiplier) + (linearHealthGrowth * roundNumber);
         float scaledDamage = (baseDamage * typeMultiplier) + (linearDamageGrowth * roundNumber);
 
-        float previewHealth = scaledHealth * Mathf.Pow(roundExponentBase, roundNumber);
-        float previewDamage = scaledDamage * Mathf.Pow(roundExponentBase, roundNumber);
+        scaledHealth *= Mathf.Pow(roundExponentBase, roundNumber);
+        scaledDamage *= Mathf.Pow(roundExponentBase, roundNumber);
 
-        return (previewHealth, previewDamage);
+        
+        float tierMultiplier = 1f;
+        if (tier == 2) tierMultiplier = 1.10f;
+        if (tier == 3) tierMultiplier = 1.10f * 1.15f;
+
+        return (scaledHealth * tierMultiplier, scaledDamage * tierMultiplier);
     }
+
+
 
 }

@@ -41,10 +41,10 @@ GameObject:
   m_Component:
   - component: {fileID: 7637895254520762665}
   - component: {fileID: 4149896787489583632}
-  - component: {fileID: 3692778171968122425}
   - component: {fileID: 2649525705093885549}
   - component: {fileID: -4586862067844213893}
   - component: {fileID: 3851255951386421034}
+  - component: {fileID: -8533866266644070651}
   m_Layer: 0
   m_Name: Tower
   m_TagString: Player
@@ -113,29 +113,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &3692778171968122425
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 909188277983895377}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 1
-  m_Height: 1
-  m_Direction: 1
-  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!114 &2649525705093885549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -150,37 +127,49 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackStats:
   - type: 0
+    baseValue: 3
     value: 0
   - type: 1
+    baseValue: 1
     value: 0
   - type: 2
+    baseValue: 0
     value: 0
   - type: 3
+    baseValue: 1
     value: 0
   - type: 4
+    baseValue: 5
     value: 0
   currentHealth: 0
   defenceStats:
   - type: 5
+    baseValue: 5
     value: 5
   - type: 6
+    baseValue: 0.09
     value: 0.09
   - type: 7
+    baseValue: 0
     value: 0
   - type: 8
+    baseValue: 0
     value: 0
   utilityStats:
   - type: 9
+    baseValue: 1
     value: 1
   - type: 10
+    baseValue: 0
     value: 0
   - type: 11
+    baseValue: 0
     value: 0
   - type: 12
+    baseValue: 0
     value: 0
   bulletPrefab: {fileID: 7876936780022086568, guid: ee2f56d467b5a3d40bc01a757d5633a8, type: 3}
   firePoint: {fileID: 7395271366282515167}
-  target: {fileID: 0}
   partToRotate: {fileID: 4099255287037586553}
   enemyTag: Enemy
 --- !u!114 &-4586862067844213893
@@ -315,6 +304,27 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 14
   m_CollisionDetection: 0
+--- !u!135 &-8533866266644070651
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 909188277983895377}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.78
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!1 &2239621130385216392
 GameObject:
   m_ObjectHideFlags: 0

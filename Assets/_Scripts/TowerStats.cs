@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
 
 public enum StatType
 {
@@ -88,6 +87,9 @@ public class TowerStats : MonoBehaviour
 
     private Transform target;
     private float fireCountdown = 0f;
+
+    public GameObject mainMenu;
+    public GameObject mainHud;
 
     void Start()
     {
@@ -209,6 +211,47 @@ public class TowerStats : MonoBehaviour
         currentHealth += amount;
         currentHealth = Mathf.Clamp(currentHealth, 0f, MaxHealth);
     }
+    public void TakeDamage(float amount)
+    {
+        float damageReduction = GetStat(StatType.DamageReduction);
+        float damageTaken = amount * (1f - damageReduction);
 
-   
+        float armor = GetStat(StatType.Armor);
+        damageTaken -= armor;
+        damageTaken = Mathf.Max(0f, damageTaken);
+
+        currentHealth -= damageTaken;
+        if (currentHealth <= 0f)
+            Die();
+    }
+    void Die()
+    {
+        Destroy(gameObject);
+        UnityEngine.SceneManagement.SceneManager.LoadScene("Menu");
+
+
+        mainHud.SetActive(false);
+        mainMenu.SetActive(true);
+    }
+
+    private void OnTriggerEnter(Collider collision)
+    {
+        
+    
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            Enemy enemy = collision.gameObject.GetComponent<Enemy>();
+            if (enemy != null)
+            {
+                // Get the enemy's damage from its stats
+                float damage = enemy.GetStat(EnemyStats.Damage);
+                Debug.Log("Tower hit by enemy for " + damage + " damage.");
+                TakeDamage(damage);
+                Destroy(collision.gameObject);
+            }
+        }
+    }
 }
+
+
+

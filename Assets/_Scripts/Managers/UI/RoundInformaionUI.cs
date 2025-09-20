@@ -8,11 +8,14 @@ public class RoundInformationUI : MonoBehaviour
     [SerializeField] private WaveSpawner waveSpawner; // Reference to the WaveSpawner for current round and timer
     [SerializeField] private TowerStats towerStats;   // Reference to the TowerStats for player stats
     [SerializeField] private Enemy enemyPrefab;       // Reference to the enemy prefab for displaying enemy stats
+    private TierTracker tracker;
 
     // ----- Round Info -----
     [Header("UI Round Stats")]
     [SerializeField] private TMP_Text currentRoundText;
+
     [SerializeField] private TMP_Text currentRoundTierText;
+
     [SerializeField] private Slider roundTimerSlider;
     [SerializeField] private TMP_Text currentBasicEnemyDamageText;
     [SerializeField] private TMP_Text currentBasicEnemyHealthText;
@@ -38,6 +41,10 @@ public class RoundInformationUI : MonoBehaviour
         {
            towerStats = FindFirstObjectByType<TowerStats>();
         }
+        if(tracker == null)
+        {
+            tracker = FindFirstObjectByType<TierTracker>();
+        }
 
         UpdateRoundInfo();
         UpdatePlayerInfo();
@@ -45,10 +52,10 @@ public class RoundInformationUI : MonoBehaviour
 
     private void UpdateRoundInfo()
     {
-        if (waveSpawner != null)
+        if (waveSpawner != null && tracker != null)
         {
             currentRoundText.text = $"Round: {waveSpawner.CurrentRound}";
-            currentRoundTierText.text = $"Tier: {waveSpawner.CurrentTier}";
+            currentRoundTierText.text = $"Tier: {tracker.CurrentTier}";
 
             if (roundTimerSlider != null)
             {
@@ -58,12 +65,15 @@ public class RoundInformationUI : MonoBehaviour
 
             if (enemyPrefab != null && currentBasicEnemyDamageText != null && currentBasicEnemyHealthText != null)
             {
-                var (health, damage) = enemyPrefab.GetPreviewStats(waveSpawner.CurrentRound);
+                
+                var (health, damage) = enemyPrefab.GetPreviewStats(waveSpawner.CurrentRound, tracker.CurrentTier);
+
                 currentBasicEnemyDamageText.text = $"D: {damage:F2}";
                 currentBasicEnemyHealthText.text = $"H: {health:F2}";
             }
         }
     }
+
 
     private void UpdatePlayerInfo()
     {
